@@ -103,7 +103,6 @@
                                 data-total-delivery="{{ row['TOTAL DELIVERY ITEM'] }}"
                                 data-on-time="{{ row['ON TIME'] }}"
                                 data-minus="{{ row['MINUS'] }}"
-                                data-achievement="{{ (row.ACHIEVEMENT * 100)|round(2) }}"
                                 data-target-delivery="{{ (row['TARGET DELIVERY'] * 100)|round(2) }}"
                                 data-purchase-amount="{{ row['Purchase Amount'] }}">
                                 <i class="fas fa-pencil-alt"></i>
@@ -187,9 +186,66 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Script untuk Modal Edit ---
+
+    // --- FUNGSI BARU UNTUK MENGHITUNG ACHIEVEMENT ---
+    function calculateAchievement(modal) {
+        // Cari input di DALAM modal yang spesifik
+        var totalDeliveryInput = modal.querySelector('.total-delivery-calc');
+        var onTimeInput = modal.querySelector('.on-time-calc');
+        var achievementOutput = modal.querySelector('.achievement-output-calc');
+
+        if (!totalDeliveryInput || !onTimeInput || !achievementOutput) {
+            // Jika salah satu elemen tidak ada, hentikan
+            return;
+        }
+
+        var total = parseFloat(totalDeliveryInput.value);
+        var onTime = parseFloat(onTimeInput.value);
+
+        if (total > 0 && onTime >= 0) {
+            var achievement = (onTime / total) * 100;
+            // Tampilkan hasil dengan 2 angka desimal
+            achievementOutput.value = achievement.toFixed(2) + '%';
+        } else if (total === 0 && onTime === 0) {
+            achievementOutput.value = '100.00%'; // Skenario 0/0 dianggap 100%
+        } else {
+            achievementOutput.value = '0.00%'; // Skenario invalid atau 0 pengiriman
+        }
+    }
+
+    // --- Fungsi untuk menambahkan listener ke input di dalam modal ---
+    function setupCalculator(modal) {
+        var totalInput = modal.querySelector('.total-delivery-calc');
+        var onTimeInput = modal.querySelector('.on-time-calc');
+
+        if (totalInput && onTimeInput) {
+            // Panggil calculateAchievement() setiap kali user mengetik
+            totalInput.addEventListener('keyup', function() { calculateAchievement(modal); });
+            onTimeInput.addEventListener('keyup', function() { calculateAchievement(modal); });
+            // Juga panggil saat nilai berubah (misal: pakai panah di input number)
+            totalInput.addEventListener('change', function() { calculateAchievement(modal); });
+            onTimeInput.addEventListener('change', function() { calculateAchievement(modal); });
+        }
+    }
+
+    // --- Terapkan kalkulator ke Modal "Add Data" ---
+    var addDataModal = document.getElementById('addDataModal');
+    if (addDataModal) {
+        // Setup kalkulator saat modal pertama kali siap
+        setupCalculator(addDataModal);
+        // Reset kalkulator (bersihkan field) saat modal ditutup
+        addDataModal.addEventListener('hidden.bs.modal', function() {
+            var output = addDataModal.querySelector('.achievement-output-calc');
+            if (output) output.value = '';
+            // Anda juga bisa reset form-nya jika mau
+            // addDataModal.querySelector('form').reset(); 
+        });
+    }
+
+    // --- Terapkan kalkulator ke Modal "Edit Data" ---
     var editModal = document.getElementById('editModal');
     if (editModal) {
+        // Setup kalkulator setiap kali modal Edit DITAMPILKAN
         editModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
             var form = document.getElementById('editForm');
@@ -203,9 +259,14 @@ document.addEventListener('DOMContentLoaded', function () {
             form.querySelector('[name="total_delivery"]').value = button.dataset.totalDelivery;
             form.querySelector('[name="on_time"]').value = button.dataset.onTime;
             form.querySelector('[name="minus"]').value = button.dataset.minus;
-            form.querySelector('[name="achievement"]').value = button.dataset.achievement;
             form.querySelector('[name="target_delivery"]').value = button.dataset.targetDelivery;
             form.querySelector('[name="purchase_amount"]').value = button.dataset.purchaseAmount;
+
+            // --- INI BAGIAN PENTING ---
+            // 1. Setup listener untuk modal edit
+            setupCalculator(editModal);
+            // 2. Langsung hitung achievement berdasarkan data yang baru diisi
+            calculateAchievement(editModal);
         });
     }
 

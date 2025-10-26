@@ -50,7 +50,6 @@
                                 data-on-time="{{ row['ON TIME'] }}"
                                 data-item-delay="{{ row['ITEM DELAY'] }}"
                                 data-minus="{{ row['MINUS'] }}"
-                                data-achievement="{{ (row.ACHIEVEMENT | replace('%', ''))|float }}"
                                 data-target-delivery="{{ (row['TARGET DELIVERY'] | replace('%', ''))|float }}"
                                 data-purchase-amount="{{ (row['Purchase Amount'] | replace('Rp ', '')| replace('.', ''))|int }}">
                                 <i class="fas fa-pencil-alt"></i>
@@ -148,7 +147,7 @@ document.addEventListener('DOMContentLoaded', function () {
             var onTime = button.getAttribute('data-on-time');
             var itemDelay = button.getAttribute('data-item-delay');
             var minus = button.getAttribute('data-minus');
-            var achievement = button.getAttribute('data-achievement');
+            // var achievement = button.getAttribute('data-achievement'); // Variabel ini tidak lagi di-pass
             var targetDelivery = button.getAttribute('data-target-delivery');
             var purchaseAmount = button.getAttribute('data-purchase-amount');
 
@@ -163,7 +162,10 @@ document.addEventListener('DOMContentLoaded', function () {
             modalForm.querySelector('[name="on_time"]').value = onTime;
             modalForm.querySelector('[name="item_delay"]').value = itemDelay;
             modalForm.querySelector('[name="minus"]').value = minus;
-            modalForm.querySelector('[name="achievement"]').value = achievement;
+            
+            // --- PERUBAHAN DI SINI: Baris ini dihapus ---
+            // modalForm.querySelector('[name="achievement"]').value = achievement;
+            
             modalForm.querySelector('[name="target_delivery"]').value = targetDelivery;
             modalForm.querySelector('[name="purchase_amount"]').value = purchaseAmount;
         });

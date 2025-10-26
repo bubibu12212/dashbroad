@@ -58,7 +58,7 @@ body {
 .hero-content {
   position: relative; 
   z-index: 2;       /* PENTING: Pastikan ini z-index: 2 (di atas video) */
-  color: #FFFFFF;
+  color: #000000; /* teks hitam "general procurement" */
   
 }
 

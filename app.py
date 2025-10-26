@@ -1,5 +1,5 @@
 import os
-import glob # --- PERUBAHAN ---: Impor library baru untuk mencari file
+import glob 
 import pandas as pd
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify
 from datetime import datetime
@@ -201,7 +201,7 @@ def update():
                 flash(f"Failed to process file. Error: {e}", 'danger')
     return render_template('update.html')
 
-# --- PERUBAHAN: Logika 'add_supplier' sudah benar (dari respons sebelumnya) ---
+# --- PERUBAHAN BESAR DI FUNGSI INI ---
 @app.route('/supplier/add', methods=['POST'])
 def add_supplier():
     form = request.form
@@ -218,12 +218,24 @@ def add_supplier():
     if not df.empty and supplier_name in df['SUPPLIER NAME'].unique():
         flash(f'Supplier "{supplier_name}" already exists in data for year {target_year}.', 'warning')
         return redirect(url_for('index'))
-        
+    
+    # --- LOGIKA BARU DIMULAI ---
+    total_delivery_val = int(float(form['total_delivery']))
+    on_time_val = int(float(form['on_time']))
+    
+    achievement_val = 0.0
+    if total_delivery_val > 0: # Hindari pembagian dengan nol
+        # Perhitungan achievement sebagai rasio (misal: 0.95 untuk 95%)
+        achievement_val = (on_time_val / total_delivery_val) 
+    # --- LOGIKA BARU SELESAI ---
+
     new_row_data = {
         'CLOSING MONTH': month_input, 'SUPPLIER NAME': supplier_name,
-        'TOTAL DELIVERY ITEM': int(float(form['total_delivery'])), 'ON TIME': int(float(form['on_time'])),
+        'TOTAL DELIVERY ITEM': total_delivery_val, # Menggunakan variabel
+        'ON TIME': on_time_val, # Menggunakan variabel
         'MINUS': int(float(form['minus'])),
-        'TARGET DELIVERY': float(form['target_delivery']) / 100, 'ACHIEVEMENT': float(form['achievement']) / 100,
+        'TARGET DELIVERY': float(form['target_delivery']) / 100,
+        'ACHIEVEMENT': achievement_val, # Menggunakan variabel hasil perhitungan
         'Purchase Amount': float(form['purchase_amount']),
         'ITEM DELAY': form.get('item_delay', 0)
     }
@@ -233,7 +245,7 @@ def add_supplier():
         flash(f'New supplier "{supplier_name}" added successfully to data for {target_year}!', 'success')
     return redirect(url_for('index'))
 
-# --- PERUBAHAN: Logika 'add_monthly_entry' sudah benar (dari respons sebelumnya) ---
+# --- PERUBAHAN BESAR DI FUNGSI INI ---
 @app.route('/data/add/<supplier_name>', methods=['POST'])
 def add_monthly_entry(supplier_name):
     form = request.form
@@ -255,12 +267,23 @@ def add_monthly_entry(supplier_name):
         # Hapus 'row_id' lama sebelum digabung
         if 'row_id' in df.columns:
             df = df.drop(columns=['row_id'])
-            
+        
+        # --- LOGIKA BARU DIMULAI ---
+        total_delivery_val = int(float(form['total_delivery']))
+        on_time_val = int(float(form['on_time']))
+        
+        achievement_val = 0.0
+        if total_delivery_val > 0: # Hindari pembagian dengan nol
+            achievement_val = (on_time_val / total_delivery_val) 
+        # --- LOGIKA BARU SELESAI ---
+
         new_row_data = {
             'CLOSING MONTH': form_month, 'SUPPLIER NAME': supplier_name,
-            'TOTAL DELIVERY ITEM': int(float(form['total_delivery'])), 'ON TIME': int(float(form['on_time'])),
+            'TOTAL DELIVERY ITEM': total_delivery_val, # Menggunakan variabel
+            'ON TIME': on_time_val, # Menggunakan variabel
             'MINUS': int(float(form['minus'])),
-            'TARGET DELIVERY': float(form['target_delivery']) / 100, 'ACHIEVEMENT': float(form['achievement']) / 100,
+            'TARGET DELIVERY': float(form['target_delivery']) / 100,
+            'ACHIEVEMENT': achievement_val, # Menggunakan variabel hasil perhitungan
             'Purchase Amount': float(form['purchase_amount']),
             'ITEM DELAY': form.get('item_delay', 0)
         }
@@ -270,7 +293,7 @@ def add_monthly_entry(supplier_name):
             
     return redirect(url_for('dashboard', supplier_name=supplier_name))
 
-# --- PERUBAHAN: Logika 'edit_entry' sudah benar (dari respons sebelumnya) ---
+# --- PERUBAHAN BESAR DI FUNGSI INI ---
 @app.route('/data/edit/<int:row_id>', methods=['POST'])
 def edit_entry(row_id):
     form = request.form
@@ -282,13 +305,23 @@ def edit_entry(row_id):
     supplier_name = ""
     if not df.empty and row_id in df['row_id'].values:
         supplier_name = df.loc[df['row_id'] == row_id, 'SUPPLIER NAME'].iloc[0]
+        
+        # --- LOGIKA BARU DIMULAI ---
+        total_delivery_val = int(float(form['total_delivery']))
+        on_time_val = int(float(form['on_time']))
+        
+        achievement_val = 0.0
+        if total_delivery_val > 0: # Hindari pembagian dengan nol
+            achievement_val = (on_time_val / total_delivery_val) 
+        # --- LOGIKA BARU SELESAI ---
+
         # Update data di DataFrame
         df.loc[df['row_id'] == row_id, 'CLOSING MONTH'] = form_month
-        df.loc[df['row_id'] == row_id, 'TOTAL DELIVERY ITEM'] = int(float(form['total_delivery']))
-        df.loc[df['row_id'] == row_id, 'ON TIME'] = int(float(form['on_time']))
+        df.loc[df['row_id'] == row_id, 'TOTAL DELIVERY ITEM'] = total_delivery_val # Menggunakan variabel
+        df.loc[df['row_id'] == row_id, 'ON TIME'] = on_time_val # Menggunakan variabel
         df.loc[df['row_id'] == row_id, 'MINUS'] = int(float(form['minus']))
         df.loc[df['row_id'] == row_id, 'TARGET DELIVERY'] = float(form['target_delivery']) / 100
-        df.loc[df['row_id'] == row_id, 'ACHIEVEMENT'] = float(form['achievement']) / 100
+        df.loc[df['row_id'] == row_id, 'ACHIEVEMENT'] = achievement_val # Menggunakan variabel hasil perhitungan
         df.loc[df['row_id'] == row_id, 'Purchase Amount'] = float(form['purchase_amount'])
         
         if save_data(df, file_path): 
