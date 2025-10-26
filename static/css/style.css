@@ -39,7 +39,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 80vh; /* Anda bisa sesuaikan tingginya di sini */
+    height: 100vh; /* Anda bisa sesuaikan tingginya di sini */
 }
 
 .hero-video-bg {
@@ -128,7 +128,7 @@ main {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding-top: 60px;                  /* Jarak dari navbar */
+    padding-top: 15px;                  /* Jarak dari navbar */
     padding-bottom: 40px;
 }
 
