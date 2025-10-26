@@ -133,7 +133,49 @@
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // --- Script untuk Modal Edit ---
+
+    // --- FUNGSI BARU UNTUK MENGHITUNG ACHIEVEMENT ---
+    function calculateAchievement(modal) {
+        var totalDeliveryInput = modal.querySelector('.total-delivery-calc');
+        var onTimeInput = modal.querySelector('.on-time-calc');
+        var achievementOutput = modal.querySelector('.achievement-output-calc');
+        if (!totalDeliveryInput || !onTimeInput || !achievementOutput) return;
+        var total = parseFloat(totalDeliveryInput.value);
+        var onTime = parseFloat(onTimeInput.value);
+        if (total > 0 && onTime >= 0) {
+            var achievement = (onTime / total) * 100;
+            achievementOutput.value = achievement.toFixed(2) + '%';
+        } else if (total === 0 && onTime === 0) {
+            achievementOutput.value = '100.00%';
+        } else {
+            achievementOutput.value = '0.00%';
+        }
+    }
+
+    // --- Fungsi untuk menambahkan listener ke input di dalam modal ---
+    function setupCalculator(modal) {
+        var totalInput = modal.querySelector('.total-delivery-calc');
+        var onTimeInput = modal.querySelector('.on-time-calc');
+        if (totalInput && onTimeInput) {
+            totalInput.addEventListener('keyup', function() { calculateAchievement(modal); });
+            onTimeInput.addEventListener('keyup', function() { calculateAchievement(modal); });
+            totalInput.addEventListener('change', function() { calculateAchievement(modal); });
+            onTimeInput.addEventListener('change', function() { calculateAchievement(modal); });
+        }
+    }
+    
+    // --- Terapkan kalkulator ke Modal "Add Data" ---
+    var addModal = document.getElementById('addModal');
+    if (addModal) {
+        setupCalculator(addModal);
+        addModal.addEventListener('hidden.bs.modal', function() {
+            var output = addModal.querySelector('.achievement-output-calc');
+            if (output) output.value = '';
+            addModal.querySelector('form').reset();
+        });
+    }
+
+    // --- Script untuk Modal Edit (DIMODIFIKASI) ---
     var editModal = document.getElementById('editModal');
     if (editModal) {
         editModal.addEventListener('show.bs.modal', function (event) {
@@ -141,37 +183,44 @@ document.addEventListener('DOMContentLoaded', function () {
             var modalForm = document.getElementById('editForm');
             var modalTitle = editModal.querySelector('.modal-title');
             
+            // Mengambil data dari tombol (sesuai cara lama file ini)
             var rowId = button.getAttribute('data-row-id');
             var month = button.getAttribute('data-month');
             var totalDelivery = button.getAttribute('data-total-delivery');
             var onTime = button.getAttribute('data-on-time');
             var itemDelay = button.getAttribute('data-item-delay');
             var minus = button.getAttribute('data-minus');
-            // var achievement = button.getAttribute('data-achievement'); // Variabel ini tidak lagi di-pass
             var targetDelivery = button.getAttribute('data-target-delivery');
             var purchaseAmount = button.getAttribute('data-purchase-amount');
 
+            // Logika untuk konversi bulan
             const monthMap = { "Januari": "01", "Februari": "02", "Maret": "03", "April": "04", "Mei": "05", "Juni": "06", "Juli": "07", "Agustus": "08", "September": "09", "Oktober": "10", "November": "11", "Desember": "12" };
             const [monthName, year] = month.split('-');
             const monthValue = `${year}-${monthMap[monthName]}`;
 
             modalTitle.textContent = 'Edit Data untuk Bulan ' + monthName + ' ' + year;
-            modalForm.action = '/edit/' + rowId;
+            
+            // --- PERBAIKAN BUG: Form action di file ini salah ---
+            // Seharusnya '/data/edit/' sesuai app.py, bukan '/edit/'
+            modalForm.action = '/data/edit/' + rowId;
+            
+            // Mengisi form
             modalForm.querySelector('[name="month"]').value = monthValue;
             modalForm.querySelector('[name="total_delivery"]').value = totalDelivery;
             modalForm.querySelector('[name="on_time"]').value = onTime;
-            modalForm.querySelector('[name="item_delay"]').value = itemDelay;
+            // 'item_delay' tidak ada di form_fields.html, jadi kita abaikan
             modalForm.querySelector('[name="minus"]').value = minus;
-            
-            // --- PERUBAHAN DI SINI: Baris ini dihapus ---
-            // modalForm.querySelector('[name="achievement"]').value = achievement;
-            
-            modalForm.querySelector('[name="target_delivery"]').value = targetDelivery;
+            modalForm.querySelector('[name_all="target_delivery"]').value = targetDelivery;
             modalForm.querySelector('[name="purchase_amount"]').value = purchaseAmount;
+            
+            // Terapkan kalkulator ke modal edit
+            setupCalculator(editModal);
+            // Langsung hitung nilai achievement saat modal dibuka
+            calculateAchievement(editModal);
         });
     }
 
-    // --- Script untuk Hapus ---
+    // --- Script untuk Hapus (DIMODIFIKASI) ---
     var deleteModal = document.getElementById('deleteModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function (event) {
@@ -180,7 +229,10 @@ document.addEventListener('DOMContentLoaded', function () {
             var monthDisplay = button.getAttribute('data-month-display');
             
             var modalForm = document.getElementById('deleteForm');
-            modalForm.action = '/delete/' + rowId;
+            
+            // --- PERBAIKAN BUG: Form action di file ini salah ---
+            // Seharusnya '/data/delete/' sesuai app.py, bukan '/delete/'
+            modalForm.action = '/data/delete/' + rowId;
             
             var monthDisplaySpan = document.getElementById('deleteMonthDisplay');
             monthDisplaySpan.textContent = monthDisplay;

@@ -187,29 +187,21 @@
 <script>
 document.addEventListener('DOMContentLoaded', function () {
 
-    // --- FUNGSI BARU UNTUK MENGHITUNG ACHIEVEMENT ---
+    // --- FUNGSI UNTUK MENGHITUNG ACHIEVEMENT ---
     function calculateAchievement(modal) {
-        // Cari input di DALAM modal yang spesifik
         var totalDeliveryInput = modal.querySelector('.total-delivery-calc');
         var onTimeInput = modal.querySelector('.on-time-calc');
         var achievementOutput = modal.querySelector('.achievement-output-calc');
-
-        if (!totalDeliveryInput || !onTimeInput || !achievementOutput) {
-            // Jika salah satu elemen tidak ada, hentikan
-            return;
-        }
-
+        if (!totalDeliveryInput || !onTimeInput || !achievementOutput) return;
         var total = parseFloat(totalDeliveryInput.value);
         var onTime = parseFloat(onTimeInput.value);
-
         if (total > 0 && onTime >= 0) {
             var achievement = (onTime / total) * 100;
-            // Tampilkan hasil dengan 2 angka desimal
             achievementOutput.value = achievement.toFixed(2) + '%';
         } else if (total === 0 && onTime === 0) {
-            achievementOutput.value = '100.00%'; // Skenario 0/0 dianggap 100%
+            achievementOutput.value = '100.00%';
         } else {
-            achievementOutput.value = '0.00%'; // Skenario invalid atau 0 pengiriman
+            achievementOutput.value = '0.00%';
         }
     }
 
@@ -217,35 +209,78 @@ document.addEventListener('DOMContentLoaded', function () {
     function setupCalculator(modal) {
         var totalInput = modal.querySelector('.total-delivery-calc');
         var onTimeInput = modal.querySelector('.on-time-calc');
-
         if (totalInput && onTimeInput) {
-            // Panggil calculateAchievement() setiap kali user mengetik
             totalInput.addEventListener('keyup', function() { calculateAchievement(modal); });
             onTimeInput.addEventListener('keyup', function() { calculateAchievement(modal); });
-            // Juga panggil saat nilai berubah (misal: pakai panah di input number)
             totalInput.addEventListener('change', function() { calculateAchievement(modal); });
             onTimeInput.addEventListener('change', function() { calculateAchievement(modal); });
         }
     }
 
-    // --- Terapkan kalkulator ke Modal "Add Data" ---
+    // --- LOGIKA BARU DARI LAYOUT.HTML (UNTUK MODAL "ADD NEW SUPPLIER") ---
+    const supplierNameInput = document.getElementById('newSupplierName');
+    const nameWarning = document.getElementById('nameWarning');
+    const saveButton = document.getElementById('saveNewSupplierBtn');
+    const addSupplierModal = document.getElementById('addSupplierModal');
+    const addSupplierForm = document.getElementById('addSupplierForm');
+
+    if (supplierNameInput) {
+        supplierNameInput.addEventListener('keyup', function() {
+            const name = this.value.trim();
+            // Bug 'name.length > 2' diperbaiki di sini menjadi 'name.length > 0'
+            if (name.length > 0) { 
+                const formData = new FormData();
+                formData.append('supplier_name', name);
+                fetch('{{ url_for("check_supplier") }}', { method: 'POST', body: formData })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.exists) {
+                        nameWarning.classList.remove('d-none');
+                        saveButton.disabled = true;
+                    } else {
+                        nameWarning.classList.add('d-none');
+                        saveButton.disabled = false;
+                    }
+                })
+                .catch(error => console.error('Error checking supplier:', error));
+            } else {
+                nameWarning.classList.add('d-none');
+                saveButton.disabled = false;
+            }
+        });
+    }
+    
+    if (addSupplierModal) {
+        // Terapkan kalkulator ke modal 'Add New Supplier'
+        setupCalculator(addSupplierModal); 
+        // Reset form saat ditutup
+        addSupplierModal.addEventListener('hidden.bs.modal', function () {
+            if (addSupplierForm) addSupplierForm.reset();
+            if (nameWarning) nameWarning.classList.add('d-none');
+            if (saveButton) saveButton.disabled = false;
+            var output = addSupplierModal.querySelector('.achievement-output-calc');
+            if (output) output.value = '';
+        });
+    }
+    // --- AKHIR DARI LOGIKA BARU ---
+
+
+    // --- LOGIKA YANG SUDAH ADA DI DASHBOARD.HTML ---
+    
+    // Terapkan kalkulator ke Modal "Add Data"
     var addDataModal = document.getElementById('addDataModal');
     if (addDataModal) {
-        // Setup kalkulator saat modal pertama kali siap
         setupCalculator(addDataModal);
-        // Reset kalkulator (bersihkan field) saat modal ditutup
         addDataModal.addEventListener('hidden.bs.modal', function() {
             var output = addDataModal.querySelector('.achievement-output-calc');
             if (output) output.value = '';
-            // Anda juga bisa reset form-nya jika mau
-            // addDataModal.querySelector('form').reset(); 
+            addDataModal.querySelector('form').reset(); 
         });
     }
 
-    // --- Terapkan kalkulator ke Modal "Edit Data" ---
+    // Terapkan kalkulator ke Modal "Edit Data"
     var editModal = document.getElementById('editModal');
     if (editModal) {
-        // Setup kalkulator setiap kali modal Edit DITAMPILKAN
         editModal.addEventListener('show.bs.modal', function (event) {
             var button = event.relatedTarget;
             var form = document.getElementById('editForm');
@@ -262,15 +297,12 @@ document.addEventListener('DOMContentLoaded', function () {
             form.querySelector('[name="target_delivery"]').value = button.dataset.targetDelivery;
             form.querySelector('[name="purchase_amount"]').value = button.dataset.purchaseAmount;
 
-            // --- INI BAGIAN PENTING ---
-            // 1. Setup listener untuk modal edit
             setupCalculator(editModal);
-            // 2. Langsung hitung achievement berdasarkan data yang baru diisi
             calculateAchievement(editModal);
         });
     }
 
-    // --- Script untuk Modal Hapus ---
+    // Script untuk Modal Hapus
     var deleteModal = document.getElementById('deleteModal');
     if (deleteModal) {
         deleteModal.addEventListener('show.bs.modal', function (event) {
@@ -280,7 +312,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // --- Script untuk Merender Chart ---
+    // Script untuk Merender Chart
     function renderChart(elementId) {
         const chartDiv = document.getElementById(elementId);
         if (chartDiv && chartDiv.dataset.chart) {
@@ -290,8 +322,6 @@ document.addEventListener('DOMContentLoaded', function () {
             } catch (e) { console.error("Failed to load chart:", e); }
         }
     }
-
-    // Panggil fungsi renderChart setelah semua elemen halaman siap.
     renderChart('chart1');
     renderChart('chart2');
 
