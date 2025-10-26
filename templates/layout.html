@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Denso Supplier Dashboard{% endblock %}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <nav class="navbar navbar-expand-lg navbar-light bg-light-custom shadow-lg">
+        <div class="container-fluid">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('index') }}">
+                <img src="{{ url_for('static', filename='img/logo.png') }}" alt="Denso Logo" style="height: 50px;" class="me-2">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('update') }}">
+                            <i class="fas fa-upload me-1"></i> Update via Excel
+                        </a>
+                    </li>
+                </ul>
+                <div class="ms-lg-3">
+                    <button class="btn btn-primary-custom d-flex align-items-center" type="button" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+                        <i class="fas fa-plus-circle me-2"></i> Add New Supplier
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container my-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </main>
+
+    <div class="modal fade" id="addSupplierModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content bg-dark-custom text-light border-0 shadow-lg">
+                <div class="modal-header border-bottom-dark">
+                    <h5 class="modal-title">Add New Supplier & First Month Data</h5>
+                    <button type="button" class="btn-close btn-close-black" data-bs-dismiss="modal"></button>
+                </div>
+                <form id="addSupplierForm" action="{{ url_for('add_supplier') }}" method="post">
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">New Supplier Name</label>
+                            <input type="text" name="supplier_name" id="newSupplierName" class="form-control bg-dark-lighter text-light border-dark-subtle" placeholder="Enter new supplier name..." required list="suppliers-list">
+                            <small id="nameWarning" class="text-danger d-none mt-2">⚠️ Supplier with this name already exists!</small>
+                        </div>
+                        <hr class="border-secondary">
+                        {% include 'form_fields.html' %}
+                    </div>
+                    <div class="modal-footer border-top-dark">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="saveNewSupplierBtn" class="btn btn-primary">Save New Supplier</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <datalist id="suppliers-list">
+        {% for supplier in all_suppliers %}
+            <option value="{{ supplier }}">
+        {% endfor %}
+    </datalist>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.plot.ly/plotly-2.32.0.min.js"></script>
+    
+    {% block scripts %}
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const supplierNameInput = document.getElementById('newSupplierName');
+        const nameWarning = document.getElementById('nameWarning');
+        const saveButton = document.getElementById('saveNewSupplierBtn');
+        const addModal = document.getElementById('addSupplierModal');
+        const addForm = document.getElementById('addSupplierForm');
+
+        if (supplierNameInput) {
+            supplierNameInput.addEventListener('keyup', function() {
+                const name = this.value.trim();
+
+                if (name.length > 2) {
+                    const formData = new FormData();
+                    formData.append('supplier_name', name);
+
+                    fetch('{{ url_for("check_supplier") }}', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.exists) {
+                            nameWarning.classList.remove('d-none');
+                            saveButton.disabled = true;
+                        } else {
+                            nameWarning.classList.add('d-none');
+                            saveButton.disabled = false;
+                        }
+                    })
+                    .catch(error => console.error('Error checking supplier:', error));
+                } else {
+                    nameWarning.classList.add('d-none');
+                    saveButton.disabled = false;
+                }
+            });
+        }
+        
+        if (addModal) {
+            addModal.addEventListener('hidden.bs.modal', function () {
+                addForm.reset();
+                nameWarning.classList.add('d-none');
+                saveButton.disabled = false;
+            });
+        }
+    });
+    </script>
+    {% endblock %}
+</body>
+</html>

@@ -1,0 +1,405 @@
+:root {
+    /* Variabel warna utama untuk konsistensi tema di seluruh aplikasi */
+    --denso-red: #E60012;           /* Warna utama brand Denso, dipakai di tombol, judul, dsb */
+    --text-primary: #212529;        /* Warna teks utama, dipakai di body, card, dsb */
+    --text-secondary: #6c757d;      /* Warna teks sekunder, dipakai di subtitle, label, dsb */
+    --bg-main: #f4f6f9;             /* Background utama halaman */
+    --bg-card: #ffffff;             /* Background untuk card/kotak */
+    --border-color: #dee2e6;        /* Warna border untuk card, tabel, dsb */
+    --shadow-soft: 0 4px 12px rgba(0, 0, 0, 0.05); /* Shadow lembut untuk card */
+    --positive-text: #198754;       /* Warna teks positif (misal: achievement bagus) */
+    --neutral-text: #E85D04;        /* Warna teks netral (misal: warning) */
+}
+
+
+/* Reset box model dan margin/padding default semua elemen */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* Body: font, warna, background utama halaman */
+body {
+    font-family: 'Inter', sans-serif;   /* Font utama aplikasi */
+    background-color: var(--bg-main);   /* Background halaman */
+    color: var(--text-primary);         /* Warna teks utama */
+    line-height: 1.6;                   /* Spasi antar baris */
+    padding-top: 80px;                  /* Supaya konten tidak ketutupan navbar (navbar fixed) */
+}
+
+/* === CSS UNTUK MEMPOSISIKAN VIDEO SEBAGAI BACKGROUND === */
+
+.hero-section {
+    /* Ini adalah 3 baris KUNCI yang hilang: */
+    position: relative; /* Membuatnya jadi 'wadah' */
+    overflow: hidden;   /* Mencegah video 'bocor' keluar */
+    
+    /* Properti ini sudah ada dari index.html (d-flex, dll) tapi kita pastikan lagi */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 80vh; /* Anda bisa sesuaikan tingginya di sini */
+}
+
+.hero-video-bg {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    min-width: 100%;
+    min-height: 100%;
+    width: auto;
+    height: auto;
+    z-index: 1; 
+}
+  
+
+.hero-content {
+  position: relative; 
+  z-index: 2;       /* PENTING: Pastikan ini z-index: 2 (di atas video) */
+  color: #FFFFFF;
+  
+}
+
+/* Container utama untuk membatasi lebar konten dan memberi padding */
+.container,
+.main-content {
+    margin-top: 20px;
+}
+
+.container {
+    max-width: 1280px;                  /* Maksimal lebar konten */
+    margin: 0 auto;                     /* Tengah secara horizontal */
+    padding: 0 24px;                    /* Padding kiri-kanan */
+}
+
+/* --- Navigation Bar --- */
+/* Navbar fixed di atas, transparan, ada blur, dan border bawah */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 16px 0;
+    z-index: 1000;
+    background-color: rgba(255, 255, 255, 0.8); /* Transparan */
+    backdrop-filter: blur(12px);                /* Blur background */
+    -webkit-backdrop-filter: blur(12px);        /* Blur untuk Safari */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.07); /* Border bawah tipis */
+}
+
+/* Container navbar: mengatur posisi brand dan menu */
+.nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Brand/logo navbar */
+.navbar-brand {
+    font-size: 26px;
+    font-weight: 800;
+    color: var(--denso-red);            /* Warna brand */
+    text-decoration: none;
+    letter-spacing: -1px;
+}
+
+/* Tombol utama (primary) di navbar dan form */
+.btn.btn-primary {
+    background-color: var(--denso-red); /* Warna tombol utama */
+    color: #ffffff;
+    border: none;
+    padding: 10px 24px;
+    font-size: 15px;
+    font-weight: 600;
+    border-radius: 50px;                /* Tombol bulat penuh */
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+.btn.btn-primary:hover {
+    background-color: #c50000;          /* Warna tombol saat hover */
+}
+
+/* --- Main Content --- */
+/* Main: mengatur tinggi minimum dan posisi konten agar di tengah */
+main {
+    min-height: calc(100vh - 120px);    /* Tinggi minimum agar konten di tengah */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: 60px;                  /* Jarak dari navbar */
+    padding-bottom: 40px;
+}
+
+/* Judul dashboard dengan efek gradient */
+.text-gradient {
+    background: linear-gradient(90deg, #E60012, #ff4d6d); /* Gradient merah */
+    -webkit-background-clip: text;
+    background-clip: text;                                 /* Standar property untuk kompatibilitas */
+    -webkit-text-fill-color: transparent;                  /* Teks jadi transparan, hanya warna gradient */
+}
+
+/* Card KPI agar isi rata tengah */
+.kpi-card {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    background-color: var(--bg-card);
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-color);
+}
+
+/* Judul halaman */
+.page-header {
+    margin-bottom: 40px;
+}
+.page-header h1 {
+    font-size: 36px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+.page-header p {
+    font-size: 18px;
+    color: var(--text-secondary);
+}
+
+/* Section: jarak antar section */
+section {
+    margin-bottom: 40px;
+}
+
+/* --- KPI Card Grid --- */
+/* Grid untuk card KPI di dashboard */
+.kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 24px;
+}
+
+/* Judul dan nilai KPI */
+.kpi-title {
+    font-size: 16px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    margin-bottom: 8px;
+}
+.kpi-value {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+.kpi-subtitle {
+    font-size: 14px;
+    color: #999;
+}
+
+/* --- Chart Section --- */
+/* Card untuk chart di dashboard */
+.chart-container {
+    background-color: var(--bg-card);
+    padding: 24px;
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-color);
+}
+.chart-container h3 {
+    font-size: 20px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+/* Placeholder chart jika data belum ada */
+.chart-placeholder {
+    width: 100%;
+    min-height: 350px;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+    border: 1px dashed var(--border-color);
+    font-size: 16px;
+}
+
+/* --- Data Table Section --- */
+/* Judul section data table */
+.data-table-section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    font-weight: 600;
+}
+/* Wrapper tabel agar bisa di-scroll horizontal */
+.table-wrapper {
+    overflow-x: auto;
+    background-color: var(--bg-card);
+    border-radius: 16px;
+    box-shadow: var(--shadow-soft);
+    border: 1px solid var(--border-color);
+}
+/* Tabel data utama */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+}
+.data-table th, .data-table td {
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--border-color);
+}
+.data-table thead th {
+    background-color: #f8f9fa;
+    font-size: 14px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+}
+.data-table tbody tr:last-child td {
+    border-bottom: none;
+}
+.data-table tbody tr:hover {
+    background-color: #f1f3f5;
+}
+
+/* Teks positif dan netral untuk nilai KPI atau status */
+.text-positive {
+    color: var(--positive-text);
+    font-weight: 600;
+}
+.text-neutral {
+    color: var(--neutral-text);
+    font-weight: 600;
+}
+
+/* --- Modal Styling --- */
+/* Card modal (popup) untuk form tambah/edit/hapus data */
+.modal-content {
+  background: #ffffff;         /* Background putih solid */
+  color: #333;                 /* Teks gelap */
+  border-radius: 10px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.2); /* Shadow tebal */
+}
+/* Label dan judul modal */
+.modal-header,
+.modal-body label,
+.modal-body h5,
+.modal-body h6 {
+  color: #222 !important;      /* Teks modal lebih gelap */
+  font-weight: 600;
+}
+/* Input di modal */
+.modal-body input,
+.modal-body select,
+.modal-body textarea {
+  background: #fff !important;
+  color: #000 !important;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  padding: 8px 12px;
+}
+/* Placeholder input modal */
+.modal-body input::placeholder {
+  color: #888 !important;
+  opacity: 1;
+}
+/* Tombol di footer modal */
+.modal-footer button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+}
+.modal-footer .btn-primary {
+  background-color: #4CAF50; 
+  border: none;
+}
+.modal-footer .btn-secondary {
+  background-color: #ba2d2d;
+  color: #000;
+  border: none;
+}
+
+/* Button "x" (close) pada modal, agar selalu terlihat jelas */
+.btn-close,
+.btn-close-black {
+    background: none;
+    border: none;
+    font-size: 1.7rem;           /* Ukuran besar, mudah dilihat */
+    color: #000000;              /* Warna merah Denso */
+    opacity: 0.8;
+    
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+.btn-close:hover,
+.btn-close-black:hover {
+    opacity: 1;
+    color: #000000;              /* Warna lebih gelap saat hover */
+}
+/* Ini adalah cara yang benar untuk Bootstrap 5 */
+.modal-content .btn-close {
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+    opacity: 0.8; /* Ikon 80% terlihat */
+}
+
+.modal-content .btn-close:hover {
+    opacity: 1; /* Ikon 100% terlihat saat mouse di atasnya */
+}
+
+/* Mengatur Tombol "X" (btn-close) di Semua Modal dan Card */
+.btn-close {
+    /* Menggunakan SVG sebagai background. 
+       Warna hitam diatur oleh 'fill='%23000000'' */
+    background: transparent url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='%23000000'%3e%3cpath d='M.293.293a1 1 0 0 1 1.414 0L8 6.586 14.293.293a1 1 0 1 1 1.414 1.414L9.414 8l6.293 6.293a1 1 0 0 1-1.414 1.414L8 9.414l-6.293 6.293a1 1 0 0 1-1.414-1.414L6.586 8 .293 1.707a1 1 0 0 1 0-1.414z'/%3e%3c/svg%3e") center/1em auto no-repeat;
+    opacity: 0.7; /* Dibuat sedikit transparan */
+    box-shadow: none; /* Menghilangkan bayangan biru saat diklik */
+}
+
+/* Membuat ikon "X" lebih jelas saat mouse diarahkan ke atasnya */
+.btn-close:hover {
+    opacity: 1;
+}
+
+/* -- Tambahkan atau Ganti kode di bagian ini -- */
+.modal-footer .btn {
+    padding: 10px 24px;          /* Mengatur padding agar ukuran kotak sama */
+    border-radius: 6px;          /* Menyamakan radius sudut */
+    font-weight: 600;            /* Membuat teks sedikit tebal */
+    border: none;                /* Menghapus border default */
+    cursor: pointer;
+    color: #ffffff; 
+    transition: background-color 0.2s ease, color 0.2s ease;
+}   
+.modal-footer .btn-primary {
+  background-color: #5a9cff; /* Warna dasar hijau */
+  color: #ffffff; /* Pastikan teks selalu putih */
+  border: none;
+}
+
+.modal-footer .btn-primary:hover {
+  background-color: #3e8e41; /* Hijau lebih gelap saat disentuh mouse */
+}
+
+.modal-footer .btn-primary:active {
+  background-color: #5a9cff; /* Hijau paling gelap saat di-klik */
+  color: #ffffff; /* Pastikan teks tetap putih saat di-klik */
+}
+
+.modal-footer .btn-secondary {
+  background-color: #5a9cff; /* Warna dasar merah */
+  color: #ffffff; /* Ganti dari hitam ke putih agar lebih kontras */
+  border: none;
+}
+
+.modal-footer .btn-secondary:hover {
+  background-color: #da190b; /* Merah lebih gelap saat disentuh mouse */
+}
+
+.modal-footer .btn-secondary:active {
+  background-color: #c41406; /* Merah paling gelap saat di-klik */
+  color: #ffffff; /* Pastikan teks tetap putih saat di-klik */
+}

@@ -1,0 +1,43 @@
+{% extends "layout.html" %}
+
+{% block title %}Update Data from Excel{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h2 class="mb-0"><i class="fas fa-file-excel me-2"></i>Update Data from Excel File</h2>
+                 <a href="{{ url_for('index') }}" class="btn-close" aria-label="Close"></a>
+                </a>
+            </div>
+            </div>
+            <div class="card-body">
+                <p class="lead">Upload a new <code>data.xlsx</code> file to add or update supplier performance data.</p>
+                <hr>
+                
+                <div class="alert alert-info">
+                    <strong>How it works:</strong>
+                    <ul>
+                        <li>The system will merge the old data with the data from your uploaded file.</li>
+                        <li>If data for the same supplier and month exists, the data from the new file will **replace (update)** the old data.</li>
+                        <li>Ensure the column names in your new file match the expected format.</li>
+                    </ul>
+                </div>
+
+                <form action="{{ url_for('update') }}" method="post" enctype="multipart/form-data" class="mt-4">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Choose .xlsx file</label>
+                        <input class="form-control form-control-lg" type="file" name="file" id="file" accept=".xlsx" required>
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-danger btn-lg">
+                            <i class="fas fa-upload me-2"></i> Upload and Process File
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

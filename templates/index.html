@@ -1,0 +1,46 @@
+{% extends "layout.html" %}
+
+{% block title %}Supplier Search{% endblock %}
+
+{% block content %}
+    <div class="d-flex justify-content-center align-items-center hero-section">
+        <video autoplay loop muted class="hero-video-bg">
+            <source src="{{ url_for('static', filename='img/bg.mp4') }}" type="video/mp4">
+            Browser Anda tidak mendukung tag video.
+        </video>
+
+    <div class="hero-content text-center w-100" style="max-width: 700px;">
+        <h1 class="display-4 fw-bold mb-3 text-gradient animate__animated animate__fadeInDown">Supplier Performance Dashboard</h1>
+        <p class="lead mb-5 animate__animated animate__fadeInUp animate__delay-1s">
+            performance through detailed dashboards and analytics.
+        </p>
+        
+        {% if suppliers %}
+        <form action="{{ url_for('search') }}" method="post" class="w-100 animate__animated animate__fadeInUp animate__delay-2s">
+            <div class="input-group input-group-lg search-bar-custom shadow-lg">
+                <input list="suppliers-list" name="supplier_name" class="form-control" placeholder="Search supplier name..." required>
+                <datalist id="suppliers-list">
+                    {% for supplier in suppliers %}
+                        <option value="{{ supplier }}">
+                    {% endfor %}
+                </datalist>
+                <button class="btn btn-primary-custom" type="submit"><i class="fas fa-search me-2"></i> Search</button>
+            </div>
+        </form>
+        {% else %}
+        <div class="alert alert-warning animate__animated animate__fadeInUp animate__delay-2s">
+            <strong>No data found.</strong> Please ensure `data.xlsx` is in the application folder or add a new supplier.
+        </div>
+
+    <input type="text" 
+       id="supplierName" 
+       name="supplier_name" 
+       class="form-control" 
+       placeholder="Enter new supplier name..." 
+       autocomplete="off">
+    <small id="nameWarning" class="text-danger d-none">⚠️ Supplier already exists!</small>
+
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

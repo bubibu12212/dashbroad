@@ -1,0 +1,189 @@
+{% extends "layout.html" %}
+
+{% block title %}Data - {{ supplier_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
+    <h2 class="display-6 mb-0">Data Supplier: <strong>{{ supplier_name }}</strong></h2>
+    <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+        <i class="fas fa-arrow-left me-2"></i> Kembali ke Pencarian
+    </a>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="mb-0">Data Rinci per Bulan</h4>
+        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#addModal">
+            <i class="fas fa-plus me-1"></i> Tambah Data Baru
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Bulan</th>
+                        <th>Total Delivery</th>
+                        <th>Item Delay</th>
+                        <th>Minus</th>
+                        <th>Achievement</th>
+                        <th>Target</th>
+                        <th>Purchase Amount</th>
+                        <th class="text-center">Aksi</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    <tr>
+                        <td>{{ row['CLOSING MONTH'] }}</td>
+                        <td>{{ row['TOTAL DELIVERY ITEM'] }}</td>
+                        <td>{{ row['ITEM DELAY'] }}</td>
+                        <td>{{ row['MINUS'] }}</td>
+                        <td class="fw-bold">{{ row['ACHIEVEMENT'] }}</td>
+                        <td>{{ row['TARGET DELIVERY'] }}</td>
+                        <td>{{ row['Purchase Amount'] }}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#editModal"
+                                data-row-id="{{ row.row_id }}"
+                                data-month="{{ row['CLOSING MONTH'] | replace(' ', '-') }}"
+                                data-total-delivery="{{ row['TOTAL DELIVERY ITEM'] }}"
+                                data-on-time="{{ row['ON TIME'] }}"
+                                data-item-delay="{{ row['ITEM DELAY'] }}"
+                                data-minus="{{ row['MINUS'] }}"
+                                data-achievement="{{ (row.ACHIEVEMENT | replace('%', ''))|float }}"
+                                data-target-delivery="{{ (row['TARGET DELIVERY'] | replace('%', ''))|float }}"
+                                data-purchase-amount="{{ (row['Purchase Amount'] | replace('Rp ', '')| replace('.', ''))|int }}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm" data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                data-row-id="{{ row.row_id }}"
+                                data-month-display="{{ row['CLOSING MONTH'] }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Tambah Data Baru untuk <strong>{{ supplier_name }}</strong></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('add_entry', supplier_name=supplier_name) }}" method="post">
+                <div class="modal-body">
+                    {% include 'form_fields.html' %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">Simpan Data Baru</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Data</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm" method="post">
+                <div class="modal-body">
+                    {% include 'form_fields.html' %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary">Update Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+             <div class="modal-header">
+                <h5 class="modal-title">Konfirmasi Hapus</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="deleteForm" method="post">
+                <div class="modal-body">
+                    <p>Apakah Anda yakin ingin menghapus data untuk bulan <strong id="deleteMonthDisplay"></strong>?</p>
+                    <p class="text-danger small">Aksi ini tidak dapat dibatalkan.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-danger">Ya, Hapus</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Script untuk Modal Edit ---
+    var editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var modalForm = document.getElementById('editForm');
+            var modalTitle = editModal.querySelector('.modal-title');
+            
+            var rowId = button.getAttribute('data-row-id');
+            var month = button.getAttribute('data-month');
+            var totalDelivery = button.getAttribute('data-total-delivery');
+            var onTime = button.getAttribute('data-on-time');
+            var itemDelay = button.getAttribute('data-item-delay');
+            var minus = button.getAttribute('data-minus');
+            var achievement = button.getAttribute('data-achievement');
+            var targetDelivery = button.getAttribute('data-target-delivery');
+            var purchaseAmount = button.getAttribute('data-purchase-amount');
+
+            const monthMap = { "Januari": "01", "Februari": "02", "Maret": "03", "April": "04", "Mei": "05", "Juni": "06", "Juli": "07", "Agustus": "08", "September": "09", "Oktober": "10", "November": "11", "Desember": "12" };
+            const [monthName, year] = month.split('-');
+            const monthValue = `${year}-${monthMap[monthName]}`;
+
+            modalTitle.textContent = 'Edit Data untuk Bulan ' + monthName + ' ' + year;
+            modalForm.action = '/edit/' + rowId;
+            modalForm.querySelector('[name="month"]').value = monthValue;
+            modalForm.querySelector('[name="total_delivery"]').value = totalDelivery;
+            modalForm.querySelector('[name="on_time"]').value = onTime;
+            modalForm.querySelector('[name="item_delay"]').value = itemDelay;
+            modalForm.querySelector('[name="minus"]').value = minus;
+            modalForm.querySelector('[name="achievement"]').value = achievement;
+            modalForm.querySelector('[name="target_delivery"]').value = targetDelivery;
+            modalForm.querySelector('[name="purchase_amount"]').value = purchaseAmount;
+        });
+    }
+
+    // --- Script untuk Hapus ---
+    var deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var rowId = button.getAttribute('data-row-id');
+            var monthDisplay = button.getAttribute('data-month-display');
+            
+            var modalForm = document.getElementById('deleteForm');
+            modalForm.action = '/delete/' + rowId;
+            
+            var monthDisplaySpan = document.getElementById('deleteMonthDisplay');
+            monthDisplaySpan.textContent = monthDisplay;
+        });
+    }
+});
+</script>
+{% endblock %}

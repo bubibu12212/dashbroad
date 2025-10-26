@@ -1,0 +1,239 @@
+{% extends "layout.html" %}
+{% block title %}Dashboard - {{ supplier_name }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom border-dark-subtle">
+    <h2 class="display-6 mb-0 text-gradient">Supplier: <strong>{{ supplier_name }}</strong></h2>
+    
+    <div class="d-flex align-items-center">
+        <form action="{{ url_for('search') }}" method="post" class="me-2" style="min-width: 300px;">
+            <div class="input-group">
+                <input list="suppliers-list" name="supplier_name" class="form-control" placeholder="Search another supplier..." required>
+                <button class="btn btn-danger" type="submit"><i class="fas fa-search"></i></button>
+            </div>
+        </form>
+
+        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left me-2"></i> Back
+        </a>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-4">
+        <div class="card bg-dark-custom shadow-lg border-0 h-100 kpi-card">
+            <div class="card-body text-center d-flex flex-column justify-content-center">
+                <h6 class="card-subtitle mb-2 text-muted text-uppercase">Total Purchase</h6>
+                <p class="card-text display-6 fw-bold text-danger gradient-text-red mb-0">{{ kpi.total_purchase }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark-custom shadow-lg border-0 h-100 kpi-card">
+            <div class="card-body text-center d-flex flex-column justify-content-center">
+                <h6 class="card-subtitle mb-2 text-muted text-uppercase">Avg. Achievement</h6>
+                <p class="card-text display-6 fw-bold text-success gradient-text-green mb-0">{{ kpi.avg_achievement }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card bg-dark-custom shadow-lg border-0 h-100 kpi-card">
+            <div class="card-body text-center d-flex flex-column justify-content-center">
+                <h6 class="card-subtitle mb-2 text-muted text-uppercase">Total Delivery</h6>
+                <p class="card-text display-6 fw-bold text-info gradient-text-blue mb-0">{{ kpi.total_delivery }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card bg-dark-custom shadow-lg border-0 h-100">
+            <div class="card-body">
+                <div id="chart1" style="min-height: 500px;" data-chart='{{ chart1_json|safe }}'></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card bg-dark-custom shadow-lg border-0 h-100">
+            <div class="card-body">
+                <div id="chart2" style="min-height: 500px;" data-chart='{{ chart2_json|safe }}'></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card bg-dark-custom shadow-lg border-0 mt-4">
+    <div class="card-header border-bottom-dark d-flex justify-content-between align-items-center">
+        <h4 class="mb-0 text-gradient">Monthly Data Details</h4>
+        <button type="button" class="btn btn-primary-custom btn-sm" data-bs-toggle="modal" data-bs-target="#addDataModal">
+            <i class="fas fa-plus me-1"></i> Add / Update Monthly Data
+        </button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-white table-striped table-hover mb-0 table-borderless align-middle">
+                <thead class="bg-dark-lighter">
+                    <tr>
+                        <th>Month</th>
+                        <th>Total Delivery</th>
+                        <th>ON TIME</th>
+                        <th>Minus</th>
+                        <th>Achievement</th>
+                        <th>Target</th>
+                        <th>Purchase Amount</th>
+                        <th class="text-center">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in table_data %}
+                    <tr>
+                        <td>{{ row['CLOSING MONTH'].strftime('%B %Y') }}</td>
+                        <td>{{ row['TOTAL DELIVERY ITEM'] }}</td>
+                        <td>{{ row['ON TIME'] }}</td>
+                        <td>{{ row['MINUS'] }}</td>
+                        <td class="fw-bold text-success">{{ (row.ACHIEVEMENT * 100)|round(2) }}%</td>
+                        <td>{{ (row['TARGET DELIVERY'] * 100)|round(0) }}%</td>
+                        <td>{{ "Rp {:,.0f}".format(row['Purchase Amount'])|replace(',', '.') }}</td>
+                        <td class="text-center">
+                            <button type="button" class="btn btn-outline-info btn-sm me-1" 
+                                data-bs-toggle="modal" data-bs-target="#editModal"
+                                data-row-id="{{ row.row_id }}"
+                                data-month="{{ row['CLOSING MONTH'].strftime('%Y-%m') }}"
+                                data-total-delivery="{{ row['TOTAL DELIVERY ITEM'] }}"
+                                data-on-time="{{ row['ON TIME'] }}"
+                                data-minus="{{ row['MINUS'] }}"
+                                data-achievement="{{ (row.ACHIEVEMENT * 100)|round(2) }}"
+                                data-target-delivery="{{ (row['TARGET DELIVERY'] * 100)|round(2) }}"
+                                data-purchase-amount="{{ row['Purchase Amount'] }}">
+                                <i class="fas fa-pencil-alt"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-danger btn-sm"
+                                data-bs-toggle="modal" data-bs-target="#deleteModal"
+                                data-row-id="{{ row.row_id }}"
+                                data-month-display="{{ row['CLOSING MONTH'].strftime('%B %Y') }}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addDataModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark-custom text-light border-0 shadow-lg">
+            <div class="modal-header border-bottom-dark">
+                <h5 class="modal-title">Add/Update Monthly Data for <strong>{{ supplier_name }}</strong></h5>
+                <button type="button" class="btn-close btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{{ url_for('add_monthly_entry', supplier_name=supplier_name) }}" method="post">
+                <div class="modal-body">
+                    <p class="text-muted small">Select an existing month to update its data, or select a new month to add data.</p>
+                    {% include 'form_fields.html' %}
+                </div>
+                <div class="modal-footer border-top-dark">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content bg-dark-custom text-light border-0 shadow-lg">
+            <div class="modal-header border-bottom-dark">
+                <h5 class="modal-title">Edit Data</h5>
+                <button type="button" class="btn-close btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="editForm" method="post">
+                <div class="modal-body">{% include 'form_fields.html' %}</div>
+                <div class="modal-footer border-top-dark">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content bg-dark-custom text-light border-0 shadow-lg">
+            <div class="modal-header border-bottom-dark">
+                <h5 class="modal-title">Confirm Delete</h5>
+                <button type="button" class="btn-close btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form id="deleteForm" method="post">
+                <div class="modal-body">
+                    <p>Are you sure you want to delete data for the month of <strong id="deleteMonthDisplay" class="text-warning"></strong>?</p>
+                    <p class="text-danger small">This action cannot be undone.</p>
+                </div>
+                <div class="modal-footer border-top-dark">
+                    <button type="button" class="btn btn-secondary-custom" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-danger-custom">Yes, Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // --- Script untuk Modal Edit ---
+    var editModal = document.getElementById('editModal');
+    if (editModal) {
+        editModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            var form = document.getElementById('editForm');
+            var title = editModal.querySelector('.modal-title');
+            var rowId = button.dataset.rowId;
+            var month = button.dataset.month;
+
+            title.textContent = 'Edit Data for ' + new Date(month + '-02').toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+            form.action = '/data/edit/' + rowId;
+            form.querySelector('[name="month"]').value = month;
+            form.querySelector('[name="total_delivery"]').value = button.dataset.totalDelivery;
+            form.querySelector('[name="on_time"]').value = button.dataset.onTime;
+            form.querySelector('[name="minus"]').value = button.dataset.minus;
+            form.querySelector('[name="achievement"]').value = button.dataset.achievement;
+            form.querySelector('[name="target_delivery"]').value = button.dataset.targetDelivery;
+            form.querySelector('[name="purchase_amount"]').value = button.dataset.purchaseAmount;
+        });
+    }
+
+    // --- Script untuk Modal Hapus ---
+    var deleteModal = document.getElementById('deleteModal');
+    if (deleteModal) {
+        deleteModal.addEventListener('show.bs.modal', function (event) {
+            var button = event.relatedTarget;
+            document.getElementById('deleteForm').action = '/data/delete/' + button.dataset.rowId;
+            document.getElementById('deleteMonthDisplay').textContent = button.dataset.monthDisplay;
+        });
+    }
+
+    // --- Script untuk Merender Chart ---
+    function renderChart(elementId) {
+        const chartDiv = document.getElementById(elementId);
+        if (chartDiv && chartDiv.dataset.chart) {
+            try {
+                const chartData = JSON.parse(chartDiv.dataset.chart);
+                Plotly.newPlot(elementId, chartData.data, chartData.layout, { responsive: true, displaylogo: false });
+            } catch (e) { console.error("Failed to load chart:", e); }
+        }
+    }
+
+    // Panggil fungsi renderChart setelah semua elemen halaman siap.
+    renderChart('chart1');
+    renderChart('chart2');
+
+});
+</script>
+{% endblock %}
