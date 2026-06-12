@@ -36,7 +36,7 @@
         </div>
     </nav>
 
-    <main class{% if request.endpoint != 'index' %} class="container my-4"{% endif %}>
+    <main class="container my-4">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -46,7 +46,7 @@
                     </div>
                 {% endfor %}
             {% endif %}
-        {% endwith %}
+        {% endwith %} 
         {% block content %}{% endblock %}
     </main>
 

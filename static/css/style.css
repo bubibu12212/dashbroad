@@ -30,18 +30,26 @@ body {
 
 /* === CSS UNTUK MEMPOSISIKAN VIDEO SEBAGAI BACKGROUND === */
 
+/* static/css/style.css */
+
+/* ... (kode body dan main dari langkah 1) ... */
+
 .hero-section {
-    /* Ini adalah 3 baris KUNCI yang hilang: */
-    position: relative; /* Membuatnya jadi 'wadah' */
-    overflow: hidden;   /* Mencegah video 'bocor' keluar */
-    
-    /* Properti ini sudah ada dari index.html (d-flex, dll) tapi kita pastikan lagi */
+    position: absolute; /* Posisi relatif terhadap viewport/body */
+    top: 0;             /* Mulai dari paling atas */
+    left: 0;            /* Mulai dari paling kiri */
+    width: 100vw;       /* Lebar = 100% lebar viewport */
+    height: 100vh;      /* Tinggi = 100% tinggi viewport */
+    z-index: 1;         /* Di bawah navbar (yang z-index: 1000) */
+
+    /* Untuk menengahkan video di dalamnya */
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 100vh; /* Anda bisa sesuaikan tingginya di sini */
+    overflow: hidden;   /* Agar video tidak keluar batas */
 }
 
+/* Video background tetap di tengah hero-section */
 .hero-video-bg {
     position: absolute;
     top: 50%;
@@ -51,16 +59,36 @@ body {
     min-height: 100%;
     width: auto;
     height: auto;
-    z-index: 1; 
+    z-index: -1; /* Di belakang konten hero */
 }
-  
 
+/* Konten di atas video (Judul, search bar) */
 .hero-content {
-  position: relative; 
-  z-index: 2;       /* PENTING: Pastikan ini z-index: 2 (di atas video) */
-  color: #000000; /* teks hitam "general procurement" */
-  
+  position: relative;
+  z-index: 2;       /* Di atas video */
+  color: #000000;
+  text-align: center; /* Pastikan konten tengah */
+  /* Beri padding agar tidak tertutup navbar */
+  padding-top: 150px; /* Sesuaikan angka ini jika perlu */
+  /* Kita batasi lebarnya agar tidak terlalu lebar di layar besar */
+  max-width: 700px;
+  margin-left: auto; /* Untuk menengahkan max-width */
+  margin-right: auto;
 }
+
+/* Pastikan navbar tetap di paling atas */
+.navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000; /* Harus lebih tinggi dari z-index hero-section */
+    /* ... (style navbar lainnya) ... */
+}
+
+/* PENTING: Cegah container di layout mengganggu hero-section */
+/* Kita bisa buat container di index tidak berlaku, tapi lebih aman */
+/* pastikan hero-content punya padding yang cukup */
 
 /* Container utama untuk membatasi lebar konten dan memberi padding */
 .container,
@@ -402,4 +430,24 @@ section {
 .modal-footer .btn-secondary:active {
   background-color: #c41406; /* Merah paling gelap saat di-klik */
   color: #ffffff; /* Pastikan teks tetap putih saat di-klik */
+}
+
+.background {
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 20% 30%, rgba(255, 0, 0, 0.6), transparent 40%),
+        radial-gradient(circle at 80% 70%, rgba(255, 100, 100, 0.5), transparent 40%),
+        radial-gradient(circle at 50% 50%, rgba(180, 0, 0, 0.8), transparent 50%),
+        #0f0f0f;
+    animation: floatBg 8s ease-in-out infinite alternate;
+}
+
+@keyframes floatBg {
+    from {
+        transform: scale(1) rotate(0deg);
+    }
+    to {
+        transform: scale(1.15) rotate(3deg);
+    }
 }
